@@ -3,10 +3,53 @@
 <head>
   <meta charset="UTF-8">
   <title>Key Detection</title>
-  <script type="text/javascript" src="http://www.cornify.com/js/cornify.js"></script>
+  <script type="text/javascript" src="https://www.cornify.com/js/cornify.js"></script>
 </head>
 <body>
+	<h1>Press Enter</h1>
 <script>
+	const pressed = [],
+		str = 'marco',
+		strArr = [...str.split(''), 'S'];
+
+	window.addEventListener('keyup', (e) => {
+		const strLength = str.length;
+		if ( 'Enter' == e.key ) {
+			rainUnicorn()
+		}
+		pressed.push(e.key);
+		console.groupCollapsed()
+		console.log( 'e.key: ', e.key );
+		console.log( 'strLength: ', strLength );
+		console.log( 'pressed.length: ', pressed.length );
+		let splice = pressed.splice(-strLength -1, pressed.length - strLength),
+			joined = pressed.join('');
+		console.log( 'pressed.length after splice: ', pressed.length );
+		console.log( 'splice: ', splice );
+		console.log( 'joined: ', joined );
+		console.groupEnd()
+		if ( joined.includes(str) ) {
+			cornify_add();
+		}
+	});
+
+	function unicorn(arr) {
+		arr
+			.map(char => ({ code : char.charCodeAt(), char : char }) )
+			.forEach(key => window.dispatchEvent (
+				new KeyboardEvent('keyup', { 'keyCode':key.code, 'key':key.char })
+			));
+	}
+	function rainUnicorn() {
+		let arr = [];
+		for(var i = 0; i < 88; i++){
+			arr = [...arr, ...strArr];
+		}
+		unicorn(arr);
+	}
+
+	unicorn(strArr);
+
 </script>
 </body>
 </html>
