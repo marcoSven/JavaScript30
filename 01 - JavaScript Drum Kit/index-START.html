@@ -58,6 +58,49 @@
   <audio data-key="76" src="sounds/tink.wav"></audio>
 
 <script>
+  const keys = document.querySelectorAll('.key'),
+    audio = document.querySelectorAll('audio'),
+    soundsMap = ( () => {
+      const map = new Map();
+
+      audio.forEach( sound => map.set( sound.dataset.key, sound ) );
+
+      return map;
+
+    })(),
+    click = function (e) {
+      play( soundsMap.get(this.dataset.key), this );
+    },
+    transition = function (e) {
+      if( e.propertyName === 'transform' ) {
+        this.classList.remove('playing')
+      }
+    },
+    play = (sound, el) => {
+
+      if( ! sound ) {
+        return;
+      }
+
+      el.classList.add('playing');
+      sound.currentTime = 0;
+      sound.play();
+
+    };
+
+
+keys.forEach( function(key) {
+  key.addEventListener( 'click', click )
+  key.addEventListener( 'transitionend', transition )
+});
+
+window.addEventListener('keyup', function(event) {
+  const keyCode = event.keyCode.toString(),
+    el = document.querySelector(`.key[data-key="${keyCode}"]`)
+  play( soundsMap.get( keyCode ), el );
+});
+
+
 
 </script>
 

@@ -15,7 +15,37 @@
     </ul>
   </form>
 <script>
-const endpoint = 'https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json';
+const endpoint = 'https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json',
+  cities = [],
+  search = document.querySelector('.search'),
+  suggestions = document.querySelector('.suggestions'),
+  numberWithCommas = function (x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  },
+  filter = function() {
+    const str = this.value.toLowerCase(),
+      filtered = cities.filter( loc=> loc.city.toLowerCase().indexOf(str) !== -1 || loc.state.toLowerCase().indexOf(str) !== -1 )
+      .map( a => {
+        const reg = new RegExp( str, 'gi' ),
+          city = a.city.replace(reg, `<span class="hl">${this.value}</span>`),
+          state = a.state.replace(reg,`<span class="hl">${this.value}</span>`);
+
+        return  `<li>
+        <span class="name">${city}, ${state}</span>
+        <span class="population"> ${numberWithCommas(a.population)}</span>
+        </li>`;
+      })
+      .join('');
+
+    suggestions.innerHTML = filtered;
+
+  };
+
+  search.addEventListener('keyup', filter )
+
+  fetch(endpoint)
+          .then(a => a.json() )
+          .then(a => cities.push(...a))
 
 </script>
 </body>

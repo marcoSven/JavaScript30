@@ -54,6 +54,11 @@ body {
   max-width: 50px;
 }
 
+.player__fullscreen svg {
+  fill: #fff;
+  width: 15px;
+}
+
 .player__button:focus {
   border-color: #ffc600;
 }
@@ -101,7 +106,7 @@ body {
   width: 50%;
   background: #ffc600;
   flex: 0;
-  flex-basis: 50%;
+  flex-basis: 0%;
 }
 
 /* unholy css to style input type="range" */

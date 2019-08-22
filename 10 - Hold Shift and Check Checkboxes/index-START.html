@@ -96,6 +96,71 @@
   </div>
 
 <script>
+  class listSelect {
+    constructor () {
+      this.checkboxes = document.querySelectorAll('input[type="checkbox"]');
+      this.proto = Array.prototype;
+      this.lastIndex;
+    }
+
+    findIndex = node => this.proto.findIndex.call(this.checkboxes, box => node === box )
+
+    firstLast ( node, currentIndex ) {
+      const indexArr = this.proto.reduce.call(this.checkboxes, (arr, box) => {
+          if( box.checked ){
+            arr.push( this.findIndex(box) );
+          }
+          return arr;
+        }, []),
+        firstLastArr = ( (arr, unchecked, current) => {
+            if ( ! unchecked ) {
+              return arr;
+            }
+            arr[0] = current > arr[0] && current > this.lastIndex ? current +1 : arr[0];
+            arr[1] = current < arr[1] && current < this.lastIndex ? current -1 : arr[1];
+
+            return arr;
+        })([indexArr[0], indexArr[indexArr.length -1]], false == node.checked, currentIndex);
+
+      return firstLastArr;
+
+    }
+
+    update (node, currentIndex) {
+      const firstLast = this.firstLast(node, currentIndex);
+
+      this.checkboxes.forEach( (box, index) => {
+        if( index >= firstLast[0] && index <= firstLast[1]  ) {
+          box.checked = true;
+        } else {
+          box.checked = false;
+        }
+      })
+
+    }
+
+  }
+
+  (() => {
+    const lS = new listSelect();
+    function change(e) {
+      const currentIndex = lS.findIndex(this);
+
+      if ( ! e.shiftKey ) {
+        return;
+      }
+
+      lS.update(this, currentIndex);
+
+      lS.lastIndex = currentIndex;
+
+    }
+
+    lS.checkboxes.forEach( box => box.addEventListener('click', change ) )
+
+  })();
+
+
 </script>
 </body>
 </html>
