@@ -20,15 +20,245 @@
       <li>Loading Tapas...</li>
     </ul>
     <form class="add-items">
-      <input type="text" name="item" placeholder="Item Name" required>
-      <input type="submit" value="+ Add Item">
+      <input type="text" name="remove-item" placeholder="Item Name">
+      <input type="submit" name="remove" value="- Remove Item">
     </form>
+    <form class="add-items">
+      <input type="text" name="add-item" placeholder="Item Name">
+      <input type="submit" name="add" value="+ Add Item">
+    </form>
+    <div class="clear-tacos">
+      <button data-action="check">Check All</button>
+      <button data-action="uncheck">UnCheck All</button>
+      <button data-action="clear">Remove All</button>
+    </div>
   </div>
 
 <script>
-  const addItems = document.querySelector('.add-items');
-  const itemsList = document.querySelector('.plates');
-  const items = [];
+
+  class tacoForm {
+    constructor() {
+      this.collection = {
+        forms : document.querySelectorAll('.add-items'),
+        itemsList : document.querySelector('.plates'),
+        buttons : document.querySelector('.clear-tacos'),
+        items : []
+      }
+      this.events = 'bind';
+      this.getStorage();
+    }
+
+    get items() {
+      return this.collection.items
+    }
+
+    set items(item) {
+      if ( 'object' === typeof item ) {
+        if ( item.listItem ) { // checkbox change
+          this.items.forEach( i => {
+            if ( i.el === item.listItem ) {
+              i.selected = item.checkboxChecked;
+            }
+          })
+        } else { // item was added
+          this.items.push(item)
+        }
+      } else if( 'number' === typeof item) { // item was removed
+        this.items.splice(item, 1)
+      }
+
+      this.updateStorage();
+
+    }
+
+    set events(type){
+      const handlers = this.handlers = this.handlers|| {},
+        eventHandlers =[
+          {
+            context : this.collection.itemsList,
+            type : 'change',
+            callback : 'toggleCheckbox',
+            option : true
+          },
+          {
+            context : this.collection.buttons,
+            type : 'click',
+            callback : 'reset',
+            option : true
+          }
+        ],
+        isFrozen = Object.isFrozen(handlers);
+
+      this.collection.forms.forEach( form => {
+        eventHandlers.push({
+            context : form,
+            type : 'submit',
+            callback : 'formSubmit',
+            option : true
+          })
+      });
+
+      eventHandlers.forEach( h => {
+        const func = this[h.callback].bind(this),
+          callback = 'function' == typeof h.deBounce ? h.deBounce( func ) : func;
+
+        h.callback = isFrozen ? handlers[h.callback] : handlers[h.callback] = callback;
+        return this[type](h);
+      })
+
+      Object.freeze(handlers);
+
+    }
+
+    bind(listen) {
+      listen.context.addEventListener(listen.type, listen.callback, listen.option)
+    }
+
+    unbind(listen) {
+      listen.context.removeEventListener(listen.type, listen.callback, listen.option)
+    }
+
+    formSubmit(e) {
+      e.preventDefault();
+      const form = e.currentTarget,
+          values = Object.values(form).reduce((obj,field) => {
+          obj[field.name] = field.value; return obj
+        }, {});
+
+      form.reset();
+
+      if ( '' !== values["add-item"] ) {
+        this.addItem({
+          name : values["add-item"],
+          selected : false
+        })
+      }
+
+      if ( '' !== values["remove-item"] ) {
+        this.removeItem({
+          name : values["remove-item"],
+          selected : false
+        })
+
+      }
+
+    }
+
+    createListItem(item, listIndex) {
+      const li = document.createElement('li'),
+        input = document.createElement('input'),
+        label = document.createElement('label'),
+        id = `ch-${listIndex}-${Date.now()}`;
+
+      input.setAttribute('type', 'checkbox');
+      input.setAttribute('name', item.name );
+      input.setAttribute('id', id );
+      input.checked = item.selected;
+      label.setAttribute('for', id );
+      label.textContent = item.name;
+      li.append(input, label);
+
+      return li
+
+    }
+
+    checkItem(item){
+      return 'object' === typeof item && undefined !== item.name
+    }
+
+    addItem(item) {
+      const listIndex = this.items.length,
+        li = this.checkItem(item) ? this.createListItem(item, listIndex) : false;
+
+      if ( ! li ) {
+        return;
+      }
+
+      if ( listIndex === 0 ) {
+        this.collection.itemsList.innerHTML = '';
+      }
+
+      this.collection.itemsList.append( li );
+      this.items = {
+          name : item.name,
+          selected : item.selected || false,
+          el : li
+        };
+
+    }
+
+    removeItem(item) {
+      const firstIndex = (() => {
+          let index;
+          if ( ! this.checkItem(item) ) {
+            return -1;
+          }
+          // first check items without taco / not selected
+          index = this.items.findIndex( i => i.name === item.name && ! i.selected  );
+          // if nothing found check all items
+          return -1 === index ? this.items.findIndex( i => i.name === item.name  ) : index;
+        })();
+
+      if ( -1 === firstIndex ) {
+        //no item found
+        return;
+      }
+
+      this.items[firstIndex].el.remove()
+      this.items = firstIndex;
+
+
+    }
+
+    toggleCheckbox(e) {
+      const checkbox = e.target,
+        parent = checkbox.parentNode;
+
+      this.items = {
+        checkboxChecked : checkbox.checked,
+        listItem : parent
+      };
+    }
+
+    updateStorage() {
+      const items = JSON.stringify( this.items.reduce((arr, i) => {
+        arr.push({name : i.name, selected : i.selected })
+        return arr;
+      },[] ));
+
+      window.localStorage.setItem('tacos',  items)
+    }
+
+    getStorage() {
+      const tacos = window.localStorage.getItem('tacos'),
+        items = tacos ? JSON.parse(tacos) : false;
+      items && items.forEach( item => this.addItem(item) );
+    }
+
+    reset(e) {
+      const action = e.target.dataset.action,
+        items = this.collection.itemsList.querySelectorAll('li');
+      if ( 'check' === action ) {
+        items.forEach( item =>{
+          const input = item.querySelector('input');
+          input.checked = true;
+          input.dispatchEvent(new Event('change'));
+        })
+      }else if ( 'uncheck' === action ) {
+        items.forEach( item =>{
+          const input = item.querySelector('input');
+          input.checked = false;
+          input.dispatchEvent(new Event('change'));
+        })
+      } else if ( 'clear' === action ) {
+        const remove = [...this.items];
+        remove.forEach( i => this.removeItem(i) )
+      }
+    }
+  }
+
+  new tacoForm();
+
 
 </script>
 

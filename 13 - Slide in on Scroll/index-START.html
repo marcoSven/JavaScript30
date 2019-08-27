@@ -58,6 +58,70 @@
       };
     }
 
+    class slideIn {
+      constructor(className) {
+        this.images = document.getElementsByClassName(className);
+        this.events = 'bind';
+      }
+
+      set events(type) {
+        const handlers = this.handlers = this.handlers || {},
+          eventHandlers = [
+            {
+              context: window,
+              type : 'scroll',
+              callback : 'checkSlide',
+              option : true,
+              deBounce: debounce
+            }
+          ],
+          isFrozen = Object.isFrozen(handlers);
+
+        eventHandlers.forEach( h => {
+          const func = this[h.callback].bind(this),
+            callback = 'function' == typeof h.deBounce ? h.deBounce( func ) : func;
+
+          h.callback = isFrozen ? handlers[h.callback] : handlers[h.callback] = callback;
+          return this[type](h);
+        });
+
+        Object.freeze(handlers)
+
+      }
+
+      bind(listen) {
+        listen.context.addEventListener( listen.type, listen.callback, listen.option )
+      }
+
+      unbind(listen) {
+        listen.context.removeEventListener( listen.type, listen.callback, listen.option )
+      }
+
+      showImage(image) {
+        image.classList.add('active');
+      }
+
+      hideImage(image) {
+        image.classList.remove('active');
+      }
+
+      checkSlide(e){
+        Array.prototype.forEach.call(this.images, (image, index) => {
+          const domRect = image.getBoundingClientRect(),
+            halfWayToTop = domRect.bottom - domRect.height / 2;
+
+            if ( halfWayToTop <= window.innerHeight  && domRect.bottom > 0) {
+              this.showImage(image)
+            } else {
+              this.hideImage(image)
+            }
+        })
+
+      }
+    }
+
+    new slideIn('slide-in');
+
   </script>
 
   <style>
@@ -68,11 +132,11 @@
       font-size: 20px;
       font-weight: 200;
     }
-    
+
     body {
       margin: 0;
     }
-    
+
     *, *:before, *:after {
       box-sizing: inherit;
     }
@@ -107,7 +171,7 @@
     .align-left.slide-in {
       transform: translateX(-30%) scale(0.95);
     }
-    
+
     .align-right.slide-in {
       transform: translateX(30%) scale(0.95);
     }

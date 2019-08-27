@@ -9,7 +9,9 @@
 
   <div class="photobooth">
     <div class="controls">
-      <button onClick="takePhoto()">Take Photo</button>
+      <button id="start-stream">Start</button>
+      <button id="stop-stream">Stop</button>
+      <button id="take-photo">Take Photo</button>
 <!--       <div class="rgb">
         <label for="rmin">Red Min:</label>
         <input type="range" min=0 max=255 name="rmin">
@@ -37,7 +39,7 @@
     <div class="strip"></div>
   </div>
 
-  <audio class="snap" src="http://wesbos.com/demos/photobooth/snap.mp3" hidden></audio>
+  <audio class="snap" src="https://wesbos.com/demos/photobooth/snap.mp3" hidden></audio>
 
   <script src="scripts.js"></script>
 

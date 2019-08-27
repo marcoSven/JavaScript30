@@ -11,7 +11,33 @@
 
 <script>
   window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognition = new SpeechRecognition(),
+    words = document.querySelector('.words');
+  let p = document.createElement('p');
+  recognition.interimResults = true;
+  recognition.lang = 'en-US';
 
+  words.appendChild(p);
+
+  recognition.addEventListener('result', e => {
+    const transcript = Array.from(e.results)[0][0].transcript;
+
+      p.textContent = transcript;
+
+      if ( transcript.includes('privacy please') ) {
+        recognition.removeEventListener('end', recognition.start);
+        recognition.stop();
+      }
+
+      if (e.results[0].isFinal) {
+        p = document.createElement('p');
+        words.appendChild(p);
+      }
+  });
+
+  recognition.addEventListener('end', recognition.start);
+
+  recognition.start();
 
 </script>
 
@@ -40,7 +66,7 @@
       position: relative;
       line-height: 3rem;
     }
-    
+
     p {
       margin: 0 0 3rem;
     }

@@ -182,6 +182,18 @@
     </li>
   </ul>
 <script>
+  const videos = Array.from(document.querySelectorAll('[data-time]')),
+  totalSeconds = videos.reduce((sum, video) => {
+    const str = video.dataset.time,
+      reg = new RegExp(/(^\d+):(\d+)/),
+      match = str.match(reg);
+      return sum + ( parseInt(match[1]) * 60) + parseInt(match[2]);
+  },0),
+  time = Math.floor(totalSeconds / 3600) + ':' + Math.floor((totalSeconds % 3600)/60) + ':' + ('0' + Math.floor(totalSeconds % 60)).slice(-2);
+  console.log( 'videos: ', videos );
+  console.log( 'totalSeconds: ', totalSeconds );
+  console.log( 'time: ', time );
+
 </script>
 </body>
 </html>
